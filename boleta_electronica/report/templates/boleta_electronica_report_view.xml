@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_boleta_electronica">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page">
+                        <div style="width: 40%;float: right;"><img t-att-src="image_data_uri(o.company_id.logo)" style="width:50%"/></div><br/>
+                        <font size="2"><t t-esc="o.env['res.company']._get_main_company().name"/></font>
+                        <br/>
+                        <font size="2"><span t-esc="o.company_id.partner_id._format_dotted_vat_cl(o.company_id.partner_id.vat)"/></font>
+                        <br/>
+                        <font size="2">Giro:</font>
+                        <font size="2"><t t-esc="o.env['res.company']._get_main_company().l10n_cl_activity_description"/></font>
+                        <br/>
+                        <t t-set="header_address" t-value="o.company_id.partner_id"/>
+                        <font size="2"><t t-esc="' - '.join([item for item in [
+                        ', '.join([item for item in [header_address.street, header_address.street2] if item]),
+                        header_address.city,
+                        header_address.state_id and header_address.state_id.name,
+                        header_address.zip,
+                        header_address.country_id and header_address.country_id.name] if item])"/></font>
+                        <br/>
+                        <font size="1">BOLETA ELECTRONICA NUMERO:</font>
+                        <font size="2"><t t-esc="int(o.l10n_latam_document_number)" /></font>
+                        <br/>
+                        <font size="1">REF. VENDEDOR:</font>
+                        <font size="2"><t t-esc="o.invoice_user_id.vat"/></font>
+                        <br/>
+                        <font size="2">Fecha:</font>
+                        <font size="2"><span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')"/></font>
+                        <br/>
+                        &amp;nbsp;&amp;nbsp;<br/>
+                        <t t-set="cant_prendas" t-value="0" />
+                        <t t-foreach="o.invoice_line_ids" t-as="l">
+                            <t t-set="cant_prendas" t-value="cant_prendas+l.quantity" />
+                        </t>
+                        <font size="2"><t t-esc="'%.0f'%cant_prendas"/>
+                        <t t-if="cant_prendas > 1">
+                            prendas
+                        </t>
+                        <t t-if="cant_prendas &lt; 2">
+                            prenda
+                        </t>
+                        </font>
+                        <br/>
+                        &amp;nbsp;&amp;nbsp;<br/>
+                        <font size="2">Monto Total</font>
+                        <div style="float:right">
+                            <font size="2"><span t-field="o.amount_total"/></font>
+                        </div>
+                        <br/>
+                        &amp;nbsp;&amp;nbsp;<br/>
+
+                        <font size="2">El IVA incluido en esta boleta es de</font>
+
+                        <font size="2"><span class="text-nowrap" t-field="o.amount_tax"/></font>
+                        <br/>
+                        <t t-if="o.l10n_cl_sii_barcode">
+                            <t t-set="barcode_stamp" t-value="o._pdf417_barcode(o.l10n_cl_sii_barcode)"/>
+                            <t t-if="barcode_stamp">
+                                <img class="img-fluid" t-attf-src="data:image/*;base64,{{barcode_stamp}}"/>
+                                <font size="2"><p t-att-style="'color: %s;' % o.company_id.primary_color" class="text-center small">
+                                    Timbre Electrónico SII<br />
+                                    Resolución Nº: <span t-field="o.company_id.l10n_cl_dte_resolution_number"/>
+                                    de Fecha: <span t-field="o.company_id.l10n_cl_dte_resolution_date" t-field-options='{"widget": "date"}'/><br/>
+                                    <span name="verification_url">Verifique documento en www.sii.cl</span>
+                                </p></font>
+                            </t>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>
